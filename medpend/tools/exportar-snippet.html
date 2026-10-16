@@ -1,0 +1,18 @@
+<!-- === EXPORTAR RESPALDO (Medicamentos Pendientes) === -->
+<button id="btnExportarRespaldo" style="position:fixed;right:16px;bottom:16px;z-index:99999;padding:12px 18px;border:0;border-radius:8px;background:#B5651D;color:#fff;font:600 14px Inter,system-ui,sans-serif;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.25)">⬇ Guardar respaldo para el sistema nuevo</button>
+<script>
+document.getElementById("btnExportarRespaldo").onclick = async function(){
+  const leer = async k => { try{ const r = await window.storage.get(k,false); return r && r.value ? JSON.parse(r.value) : null; }catch(e){ return null; } };
+  const records = await leer("medicamentos:records") || [];
+  const empleados = await leer("medicamentos:empleados") || [];
+  const meta = await leer("medicamentos:meta") || {};
+  if(!records.length && !empleados.length){ alert("No se encontraron datos en este navegador.\n\nAbre este archivo en el mismo navegador y la misma computadora donde usabas el sistema antiguo."); return; }
+  const paquete = { formato:"medpend-export-v1", exportadoEn:new Date().toISOString(), equipo:location.href.slice(0,120),
+    records, empleados, historicoEntregados:Number(meta.historicoEntregados)||0 };
+  const blob = new Blob([JSON.stringify(paquete,null,2)],{type:"application/json"});
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+  a.download = "respaldo-medicamentos-" + new Date().toISOString().slice(0,10) + ".json";
+  document.body.appendChild(a); a.click(); a.remove();
+  alert("Listo. Se guardó el archivo:\n" + a.download + "\n\nBúscalo en la carpeta Descargas. Cópialo a una memoria USB si lo vas a importar desde otra computadora.\n\nNo se borró nada del sistema antiguo.");
+};
+</script>

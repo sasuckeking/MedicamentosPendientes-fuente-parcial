@@ -1,0 +1,1545 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pendientes · Medicamentos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F1F4F2;
+    --paper-raised:#FFFFFF;
+    --ink:#16221D;
+    --ink-soft:#4B5A53;
+    --line:#DCE3DE;
+    --teal:#1F4B43;
+    --teal-deep:#123028;
+    --amber:#B5651D;
+    --amber-soft:#F3E1CE;
+    --gold:#8A6D1A;
+    --gold-soft:#F0E6C6;
+    --sage:#3F7A5C;
+    --sage-soft:#DCEBE1;
+    --danger:#A23B2E;
+    --danger-soft:#F4DDD7;
+    --radius-s:6px;
+    --radius-m:10px;
+    --shadow: 0 1px 2px rgba(18,48,40,0.06), 0 4px 16px rgba(18,48,40,0.05);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter',system-ui,sans-serif;
+    font-size:14px;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    margin:0;
+    letter-spacing:-0.01em;
+  }
+  #app{min-height:100vh;display:flex;flex-direction:column;}
+
+  /* Top bar */
+  .topbar{
+    background:var(--teal-deep);
+    color:#EDF3EF;
+    padding:20px 28px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    flex-wrap:wrap;
+  }
+  .topbar .brand{display:flex;flex-direction:column;gap:2px;}
+  .topbar .brand h1{font-size:22px;color:#fff;}
+  .topbar .brand span{font-size:12.5px;color:#AFC4B9;}
+  .btn{
+    border:none;
+    border-radius:var(--radius-s);
+    padding:10px 16px;
+    font-family:'Inter',sans-serif;
+    font-weight:600;
+    font-size:13.5px;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    transition:transform .12s ease, box-shadow .12s ease, background .12s ease;
+  }
+  .btn:active{transform:translateY(1px);}
+  .btn-primary{background:var(--amber);color:#fff;}
+  .btn-primary:hover{background:#9C5518;}
+  .btn-ghost{background:rgba(255,255,255,0.08);color:#EDF3EF;border:1px solid rgba(255,255,255,0.18);}
+  .btn-ghost:hover{background:rgba(255,255,255,0.15);}
+  .btn-outline{background:transparent;color:var(--teal);border:1px solid var(--line);}
+  .btn-outline:hover{border-color:var(--teal);}
+  .btn-sm{padding:6px 10px;font-size:12.5px;}
+  .btn-icon{padding:7px;border-radius:var(--radius-s);}
+
+  /* Stats row */
+  .stats{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+    gap:14px;
+    padding:20px 28px 0;
+  }
+  .stat-card{
+    background:var(--paper-raised);
+    border:1px solid var(--line);
+    border-radius:var(--radius-m);
+    padding:16px 18px;
+    box-shadow:var(--shadow);
+  }
+  .stat-card .num{font-family:'Fraunces',serif;font-size:28px;font-weight:600;color:var(--teal-deep);}
+  .stat-card .lbl{font-size:12.5px;color:var(--ink-soft);margin-top:2px;}
+  .stat-card.urgent .num{color:var(--danger);}
+  .stat-card.warn .num{color:var(--amber);}
+
+  /* Controls */
+  .controls{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+    padding:18px 28px 0;
+  }
+  .search-box{
+    flex:1;
+    min-width:220px;
+    display:flex;
+    align-items:center;
+    background:var(--paper-raised);
+    border:1px solid var(--line);
+    border-radius:var(--radius-s);
+    padding:9px 12px;
+    gap:8px;
+  }
+  .search-box input{
+    border:none;outline:none;background:transparent;width:100%;
+    font-family:'Inter',sans-serif;font-size:13.5px;color:var(--ink);
+  }
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;}
+  .tab{
+    padding:8px 14px;
+    border-radius:999px;
+    border:1px solid var(--line);
+    background:var(--paper-raised);
+    color:var(--ink-soft);
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+  }
+  .tab.active{background:var(--teal);color:#fff;border-color:var(--teal);}
+
+  /* View switch (Medicamentos / Empleados) */
+  .view-switch{
+    display:flex;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);
+    border-radius:999px;padding:3px;gap:2px;
+  }
+  .view-btn{
+    border:none;background:transparent;color:#CBDACF;font-family:'Inter',sans-serif;
+    font-weight:600;font-size:12.5px;padding:7px 14px;border-radius:999px;cursor:pointer;
+    transition:background .12s ease,color .12s ease;
+  }
+  .view-btn.active{background:#fff;color:var(--teal-deep);}
+
+  /* Empleado cards */
+  .emp-card{
+    background:var(--paper-raised);
+    border:1px solid var(--line);
+    border-radius:var(--radius-m);
+    padding:14px 16px;
+    display:grid;
+    grid-template-columns:1.4fr 1fr 1fr auto;
+    gap:14px;
+    align-items:center;
+    box-shadow:var(--shadow);
+  }
+  .emp-card.inactivo{opacity:0.55;}
+  .emp-card .name{font-weight:700;font-size:14.5px;color:var(--ink);}
+  .emp-card .sub{font-size:12.5px;color:var(--ink-soft);}
+  @media (max-width:880px){
+    .emp-card{grid-template-columns:1fr;}
+  }
+
+  /* Main content */
+  .content{padding:18px 28px 60px;flex:1;}
+  .empty{
+    text-align:center;padding:60px 20px;color:var(--ink-soft);
+    background:var(--paper-raised);border:1px dashed var(--line);border-radius:var(--radius-m);
+  }
+  .empty h3{color:var(--ink);margin-bottom:6px;}
+
+  .list{display:flex;flex-direction:column;gap:10px;}
+  .row-card{
+    background:var(--paper-raised);
+    border:1px solid var(--line);
+    border-radius:var(--radius-m);
+    padding:14px 16px;
+    display:grid;
+    grid-template-columns:1.6fr 1.3fr 1fr 0.9fr 0.9fr auto;
+    gap:14px;
+    align-items:center;
+    box-shadow:var(--shadow);
+  }
+  .row-card.entregado{opacity:0.62;}
+  .cell-title{display:flex;flex-direction:column;gap:3px;}
+  .cell-title .med{font-weight:700;font-size:14.5px;color:var(--ink);}
+  .cell-title .qty{font-size:12.5px;color:var(--ink-soft);}
+  .cell-client{display:flex;flex-direction:column;gap:3px;}
+  .cell-client .name{font-weight:600;}
+  .cell-client .phone{font-size:12.5px;color:var(--ink-soft);}
+  .cell-meta{font-size:12.5px;color:var(--ink-soft);display:flex;flex-direction:column;gap:3px;}
+  .cell-meta b{color:var(--ink);font-weight:600;}
+  .badge{
+    display:inline-flex;align-items:center;gap:5px;
+    padding:4px 10px;border-radius:999px;font-size:11.5px;font-weight:700;
+    width:fit-content;white-space:nowrap;
+  }
+  .badge-pendiente{background:var(--gold-soft);color:var(--gold);}
+  .badge-apartado{background:var(--amber-soft);color:var(--amber);}
+  .badge-enviado{background:#E3E8EE;color:#3B5170;}
+  .badge-entregado{background:var(--sage-soft);color:var(--sage);}
+  .days-pill{font-size:12px;font-weight:700;}
+  .days-ok{color:var(--sage);}
+  .days-warn{color:var(--amber);}
+  .days-danger{color:var(--danger);}
+  .row-actions{display:flex;gap:6px;}
+  .obs-line{grid-column:1/-1;font-size:12.5px;color:var(--ink-soft);border-top:1px dashed var(--line);padding-top:8px;margin-top:2px;}
+
+  /* Drawer / form */
+  .overlay{
+    position:fixed;inset:0;background:rgba(18,48,40,0.35);
+    display:none;align-items:stretch;justify-content:flex-end;z-index:50;
+  }
+  .overlay.open{display:flex;}
+  .drawer{
+    width:min(440px,100%);
+    background:var(--paper-raised);
+    height:100%;
+    padding:26px 26px 100px;
+    overflow-y:auto;
+    box-shadow:-12px 0 30px rgba(0,0,0,0.15);
+    animation:slidein .18s ease;
+  }
+  @keyframes slidein{from{transform:translateX(24px);opacity:0;}to{transform:translateX(0);opacity:1;}}
+  .drawer h2{font-size:20px;margin-bottom:4px;}
+  .drawer .sub{font-size:12.5px;color:var(--ink-soft);margin-bottom:20px;}
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-size:12.5px;font-weight:600;color:var(--ink-soft);margin-bottom:5px;}
+  .field input,.field select,.field textarea{
+    width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:var(--radius-s);
+    font-family:'Inter',sans-serif;font-size:13.5px;background:#FBFCFB;color:var(--ink);
+  }
+  .field input:focus,.field select:focus,.field textarea:focus{outline:2px solid var(--teal);outline-offset:1px;}
+  .field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .field textarea{resize:vertical;min-height:60px;}
+  .drawer-actions{
+    position:sticky;bottom:-100px;background:var(--paper-raised);
+    display:flex;gap:10px;padding-top:14px;margin-top:6px;border-top:1px solid var(--line);
+  }
+  .close-x{position:absolute;top:22px;right:22px;background:none;border:none;font-size:20px;cursor:pointer;color:var(--ink-soft);}
+
+  .toast{
+    position:fixed;bottom:22px;left:50%;transform:translateX(-50%);
+    background:var(--teal-deep);color:#fff;padding:11px 18px;border-radius:var(--radius-s);
+    font-size:13px;font-weight:600;box-shadow:var(--shadow);z-index:80;
+    opacity:0;pointer-events:none;transition:opacity .2s ease, transform .2s ease;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(-4px);}
+
+  @media (max-width:880px){
+    .row-card{grid-template-columns:1fr;}
+    .row-actions{justify-content:flex-start;}
+    .topbar{padding:16px 18px;}
+    .stats,.controls,.content{padding-left:18px;padding-right:18px;}
+  }
+
+  .sync-pill{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:600;padding:6px 12px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);color:#EDF3EF;max-width:380px;}
+  .sync-pill .dot{width:8px;height:8px;border-radius:50%;background:#7FD1A2;flex:none;}
+  .sync-pill[data-st=saving] .dot,.sync-pill[data-st=pending] .dot{background:#F0B35E;}
+  .sync-pill[data-st=blocked] .dot,.sync-pill[data-st=error] .dot{background:#F08A7B;}
+  .sync-pill[data-st=reconnect] .dot{background:#AAB4BB;}
+  .grid-sel{padding:9px 12px;border:1px solid var(--line);border-radius:var(--radius-s);background:var(--paper-raised);font-family:inherit;font-size:13px;}
+  .sub-info{font-size:12.5px;color:var(--ink-soft);}
+  .grid-wrap{overflow:auto;max-height:calc(100vh - 290px);background:var(--paper-raised);border:1px solid var(--line);border-radius:var(--radius-m);}
+  table.grid{border-collapse:collapse;width:max-content;min-width:100%;}
+  .grid th{position:sticky;top:0;background:var(--teal-deep);color:#fff;font-size:12px;text-align:left;padding:9px 8px;z-index:1;white-space:nowrap;}
+  .grid td{padding:0;border-bottom:1px solid var(--line);border-right:1px solid var(--line);}
+  .grid td input,.grid td select{width:100%;min-width:110px;border:none;background:transparent;padding:8px;font:inherit;font-size:13px;color:var(--ink);}
+  .grid td input:focus,.grid td select:focus{outline:2px solid var(--teal);outline-offset:-2px;background:#fff;}
+  .grid td:nth-child(3) input{min-width:220px;} .grid td:nth-child(10) input{min-width:240px;}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div class="topbar">
+    <div class="brand">
+      <h1>Medicamentos Pendientes</h1>
+      <span id="subtitle">Cargando…</span>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+      <div class="view-switch" id="viewSwitch">
+        <button class="view-btn active" data-view="medicamentos">Medicamentos</button>
+        <button class="view-btn" data-view="hoja">Hoja Excel</button>
+        <button class="view-btn" data-view="empleados">Empleados</button>
+      </div>
+      <span class="sync-pill" id="syncPill" style="display:none"><i class="dot"></i><span id="syncText"></span></span>
+      <button class="btn btn-ghost btn-sm" id="btnOpenXls" title="Vincular un Excel existente (edición en vivo)">Abrir Excel</button>
+      <button class="btn btn-ghost btn-sm" id="btnNewXls" title="Crear un Excel nuevo vinculado">Crear Excel</button>
+      <button class="btn btn-ghost btn-sm" id="btnReconnect" style="display:none">Reconectar</button>
+      <button class="btn btn-ghost btn-sm" id="btnUnlink" style="display:none">Desvincular</button>
+      <button class="btn btn-ghost btn-sm" id="btnImport">Importar Excel</button>
+      <button class="btn btn-ghost btn-sm" id="btnExport">Exportar Excel</button>
+      <input type="file" id="fileImport" accept=".xlsx" style="display:none;">
+      <button class="btn btn-primary" id="btnNew">+ Registrar medicamento</button>
+      <button class="btn btn-primary" id="btnNewEmp" style="display:none;">+ Nuevo empleado</button>
+    </div>
+  </div>
+
+  <div id="viewMedicamentos">
+    <div class="stats" id="stats"></div>
+
+    <div class="controls">
+      <div class="search-box">
+        <span>🔍</span>
+        <input type="text" id="search" placeholder="Buscar por cliente, medicamento, dependiente, factura o teléfono…">
+      </div>
+      <div class="tabs" id="tabs"></div>
+    </div>
+
+    <div class="content">
+      <div class="list" id="list"></div>
+    </div>
+  </div>
+
+  <div id="viewHoja" style="display:none;">
+    <div class="controls">
+      <div class="search-box"><span>🔍</span><input type="text" id="searchGrid" placeholder="Buscar en la hoja…"></div>
+      <select id="gridFilter" class="grid-sel">
+        <option value="activos">Pendientes activos</option><option value="todos">Todos</option>
+        <option value="pendiente">Pendiente</option><option value="apartado">Apartado</option>
+        <option value="enviado">Enviado al tramo</option><option value="entregado">Entregado</option>
+      </select>
+      <button class="btn btn-primary" id="btnAddRow">+ Agregar fila</button>
+      <span class="sub-info" id="gridInfo"></span>
+    </div>
+    <div class="content">
+      <div class="grid-wrap"><table class="grid"><thead id="gridHead"></thead><tbody id="gridBody"></tbody></table></div>
+      <button class="btn btn-outline" id="gridMore" style="display:none;margin-top:12px;">Mostrar más filas</button>
+    </div>
+  </div>
+  <datalist id="empList"></datalist>
+
+  <div id="viewEmpleados" style="display:none;">
+    <div class="stats" id="statsEmp"></div>
+
+    <div class="controls">
+      <div class="search-box">
+        <span>🔍</span>
+        <input type="text" id="searchEmp" placeholder="Buscar empleado por nombre, cargo o teléfono…">
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="list" id="listEmp"></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="drawer">
+    <button class="close-x" id="btnClose">✕</button>
+    <h2 id="drawerTitle">Registrar medicamento</h2>
+    <div class="sub">Los campos marcados quedan guardados en el sistema de pendientes.</div>
+    <form id="recordForm">
+      <div class="field-row">
+        <div class="field">
+          <label>Dependiente</label>
+          <select id="f_dependiente" required>
+            <option value="">Selecciona un dependiente…</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Fecha de inicio</label>
+          <input type="date" id="f_fechaInicio" required>
+        </div>
+      </div>
+      <div class="field">
+        <label>Nombre del medicamento</label>
+        <input type="text" id="f_medicamento" required>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Cantidad</label>
+          <input type="text" id="f_cantidad" placeholder="ej. 30-UNIDADES">
+        </div>
+        <div class="field">
+          <label>Factura</label>
+          <input type="text" id="f_factura">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Nombre del cliente</label>
+          <input type="text" id="f_cliente" required>
+        </div>
+        <div class="field">
+          <label>Teléfono</label>
+          <input type="text" id="f_telefono" placeholder="809-000-0000">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Autorizado</label>
+          <input type="text" id="f_autorizado" placeholder="ej. NELSON/DIST.">
+        </div>
+        <div class="field">
+          <label>Estado</label>
+          <select id="f_estado">
+            <option value="pendiente">Pendiente</option>
+            <option value="apartado">Apartado</option>
+            <option value="enviado">Enviado al tramo</option>
+            <option value="entregado">Entregado</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Fecha de entrega (estimada)</label>
+          <input type="date" id="f_fechaEntrega">
+        </div>
+        <div class="field">
+          <label>Hora</label>
+          <input type="text" id="f_hora" placeholder="TARDE / MAÑANA">
+        </div>
+      </div>
+      <div class="field">
+        <label>Observaciones</label>
+        <textarea id="f_observaciones"></textarea>
+      </div>
+      <div class="drawer-actions">
+        <button type="submit" class="btn btn-primary" style="flex:1;">Guardar</button>
+        <button type="button" class="btn btn-outline" id="btnDelete" style="display:none;">Eliminar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="overlay" id="overlayEmp">
+  <div class="drawer">
+    <button class="close-x" id="btnCloseEmp">✕</button>
+    <h2 id="drawerTitleEmp">Nuevo empleado</h2>
+    <div class="sub">Estos empleados aparecerán como sugerencia al registrar un medicamento.</div>
+    <form id="empForm">
+      <div class="field">
+        <label>Nombre completo</label>
+        <input type="text" id="e_nombre" required>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Cargo</label>
+          <input type="text" id="e_cargo" placeholder="ej. Dependiente, Cajera…">
+        </div>
+        <div class="field">
+          <label>Teléfono</label>
+          <input type="text" id="e_telefono" placeholder="809-000-0000">
+        </div>
+      </div>
+      <div class="field">
+        <label>Estado</label>
+        <select id="e_activo">
+          <option value="1">Activo</option>
+          <option value="0">Inactivo</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Notas</label>
+        <textarea id="e_notas"></textarea>
+      </div>
+      <div class="drawer-actions">
+        <button type="submit" class="btn btn-primary" style="flex:1;">Guardar</button>
+        <button type="button" class="btn btn-outline" id="btnDeleteEmp" style="display:none;">Eliminar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* === SEED_PLACEHOLDER === */
+const SEED = {"records": [], "historicoEntregados": 0};
+/* === END_SEED === */
+
+/* === ALMACENAMIENTO: usa window.storage si existe (Claude); si no, localStorage; si no, memoria === */
+(function(){
+  if(window.storage && typeof window.storage.get === "function") return;
+  const mem = {};
+  let ls = null;
+  try{ localStorage.setItem("__t","1"); localStorage.removeItem("__t"); ls = localStorage; }catch(e){ ls = null; }
+  window.storage = {
+    async get(k){
+      const v = ls ? ls.getItem(k) : (k in mem ? mem[k] : null);
+      if(v === null || v === undefined) throw new Error("not found");
+      return {key:k, value:v, shared:false};
+    },
+    async set(k,v){ if(ls) ls.setItem(k,v); else mem[k]=v; return {key:k, value:v, shared:false}; },
+    async delete(k){ if(ls) ls.removeItem(k); else delete mem[k]; return {key:k, deleted:true, shared:false}; },
+    async list(prefix){
+      const keys = ls ? Object.keys(ls) : Object.keys(mem);
+      return {keys: keys.filter(x=>!prefix || x.startsWith(prefix)), prefix, shared:false};
+    }
+  };
+})();
+
+
+const STORAGE_KEY = "medicamentos:records";
+const META_KEY = "medicamentos:meta";
+let records = [];
+let historicoEntregados = 0;
+let currentTab = "activos";
+let editingId = null;
+
+const STORAGE_KEY_EMP = "medicamentos:empleados";
+let employees = [];
+let currentView = "medicamentos";
+let editingEmpId = null;
+const uidEmp = () => "emp-" + Date.now() + "-" + Math.random().toString(36).slice(2,8);
+
+const $ = (sel) => document.querySelector(sel);
+const fmtDate = (iso) => {
+  if(!iso) return "—";
+  const [y,m,d] = iso.split("-");
+  if(!y||!m||!d) return iso;
+  return `${d}/${m}/${y}`;
+};
+const todayISO = () => new Date().toISOString().slice(0,10);
+const daysBetween = (isoStart) => {
+  if(!isoStart) return null;
+  const start = new Date(isoStart+"T00:00:00");
+  const now = new Date(todayISO()+"T00:00:00");
+  return Math.round((now-start)/86400000);
+};
+const uid = () => "rec-" + Date.now() + "-" + Math.random().toString(36).slice(2,8);
+
+function showToast(msg, ms){
+  const t = $("#toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(()=>t.classList.remove("show"), ms || 2200);
+}
+
+async function loadData(){
+  try{
+    const res = await window.storage.get(STORAGE_KEY, false);
+    if(res && res.value){
+      records = JSON.parse(res.value);
+      const meta = await window.storage.get(META_KEY, false).catch(()=>null);
+      historicoEntregados = meta ? JSON.parse(meta.value).historicoEntregados : SEED.historicoEntregados;
+    } else {
+      records = SEED.records;
+      historicoEntregados = SEED.historicoEntregados;
+      await persist();
+      await window.storage.set(META_KEY, JSON.stringify({historicoEntregados}), false);
+    }
+  }catch(e){
+    records = SEED.records;
+    historicoEntregados = SEED.historicoEntregados;
+  }
+  await loadEmployees();
+  renderEmpleadosDatalist();
+  render();
+}
+
+async function persist(){
+  try{
+    await window.storage.set(STORAGE_KEY, JSON.stringify(records), false);
+    if(hasDirty()) queueSave();
+  }catch(e){
+    console.error("No se pudo guardar", e);
+    showToast("No se pudo guardar. Intenta de nuevo.");
+  }
+}
+
+async function loadEmployees(){
+  try{
+    const res = await window.storage.get(STORAGE_KEY_EMP, false);
+    employees = res && res.value ? JSON.parse(res.value) : [];
+  }catch(e){
+    employees = [];
+  }
+}
+
+async function persistEmployees(cacheOnly){
+  try{
+    await window.storage.set(STORAGE_KEY_EMP, JSON.stringify(employees), false);
+    if(!cacheOnly){ empDirty = true; queueSave(); }
+  }catch(e){
+    console.error("No se pudo guardar empleados", e);
+    showToast("No se pudo guardar el empleado. Intenta de nuevo.");
+  }
+}
+
+function renderEmpleadosDatalist(){
+  const sel = $("#f_dependiente");
+  if(!sel) return;
+  const current = sel.value;
+  const activos = employees
+    .filter(e=>e.activo!==false && e.activo!=="0")
+    .slice()
+    .sort((a,b)=>(a.nombre||"").localeCompare(b.nombre||""));
+  let html = `<option value="">Selecciona un dependiente…</option>`;
+  html += activos.map(e=>`<option value="${escapeHtml(e.nombre)}">${escapeHtml(e.nombre)}</option>`).join("");
+  // Si el registro en edición tiene un dependiente que ya no está en la lista de activos, lo agregamos para no perder el dato
+  if(current && !activos.some(e=>e.nombre===current)){
+    html += `<option value="${escapeHtml(current)}">${escapeHtml(current)} (no registrado)</option>`;
+  }
+  sel.innerHTML = html;
+  $("#empList").innerHTML = activos.map(e=>`<option value="${escapeHtml(e.nombre)}">`).join("");
+  sel.value = current;
+}
+
+function renderStatsEmp(){
+  const activos = employees.filter(e=>e.activo!==false && e.activo!=="0").length;
+  const inactivos = employees.length - activos;
+  $("#statsEmp").innerHTML = `
+    <div class="stat-card"><div class="num">${employees.length}</div><div class="lbl">Empleados registrados</div></div>
+    <div class="stat-card"><div class="num">${activos}</div><div class="lbl">Activos</div></div>
+    <div class="stat-card warn"><div class="num">${inactivos}</div><div class="lbl">Inactivos</div></div>
+  `;
+}
+
+function filteredEmployees(){
+  const q = $("#searchEmp").value.trim().toLowerCase();
+  let list = employees.slice();
+  if(q){
+    list = list.filter(e =>
+      (e.nombre||"").toLowerCase().includes(q) ||
+      (e.cargo||"").toLowerCase().includes(q) ||
+      (e.telefono||"").toLowerCase().includes(q)
+    );
+  }
+  list.sort((a,b)=> (a.nombre||"").localeCompare(b.nombre||""));
+  return list;
+}
+
+function renderListEmp(){
+  const list = filteredEmployees();
+  if(list.length===0){
+    $("#listEmp").innerHTML = `<div class="empty"><h3>No hay empleados aquí</h3><p>Registra un nuevo empleado para que aparezca como sugerencia.</p></div>`;
+    return;
+  }
+  $("#listEmp").innerHTML = list.map(e => {
+    const activo = e.activo!==false && e.activo!=="0";
+    return `
+    <div class="emp-card ${activo?'':'inactivo'}" data-id="${e.id}">
+      <div><span class="name">${escapeHtml(e.nombre)||"—"}</span></div>
+      <div class="sub">${escapeHtml(e.cargo)||"Sin cargo"}</div>
+      <div class="sub">${escapeHtml(e.telefono)||"Sin teléfono"}</div>
+      <div class="row-actions">
+        <span class="badge ${activo?'badge-entregado':'badge-pendiente'}">${activo?'Activo':'Inactivo'}</span>
+        <button class="btn btn-outline btn-sm btn-icon" data-action="editarEmp" title="Editar">✎</button>
+      </div>
+    </div>`;
+  }).join("");
+
+  document.querySelectorAll(".emp-card").forEach(card=>{
+    const id = card.dataset.id;
+    card.querySelectorAll("[data-action]").forEach(btn=>{
+      btn.onclick = (e)=>{
+        e.stopPropagation();
+        openDrawerEmp(id);
+      };
+    });
+  });
+}
+
+function renderEmpleados(){
+  renderStatsEmp();
+  renderListEmp();
+}
+
+function openDrawerEmp(id){
+  editingEmpId = id;
+  const overlay = $("#overlayEmp");
+  const form = $("#empForm");
+  form.reset();
+  if(id){
+    const emp = employees.find(e=>e.id===id);
+    $("#drawerTitleEmp").textContent = "Editar empleado";
+    $("#e_nombre").value = emp.nombre||"";
+    $("#e_cargo").value = emp.cargo||"";
+    $("#e_telefono").value = emp.telefono||"";
+    $("#e_activo").value = (emp.activo===false||emp.activo==="0") ? "0" : "1";
+    $("#e_notas").value = emp.notas||"";
+    $("#btnDeleteEmp").style.display = "inline-flex";
+  }else{
+    $("#drawerTitleEmp").textContent = "Nuevo empleado";
+    $("#e_activo").value = "1";
+    $("#btnDeleteEmp").style.display = "none";
+  }
+  overlay.classList.add("open");
+}
+
+function closeDrawerEmp(){
+  $("#overlayEmp").classList.remove("open");
+  editingEmpId = null;
+}
+
+function switchView(view){
+  currentView = view;
+  document.querySelectorAll(".view-btn").forEach(b=>{
+    b.classList.toggle("active", b.dataset.view===view);
+  });
+  $("#viewMedicamentos").style.display = view==="medicamentos" ? "" : "none";
+  $("#viewEmpleados").style.display = view==="empleados" ? "" : "none";
+  $("#btnNew").style.display = view==="medicamentos" ? "inline-flex" : "none";
+  $("#btnImport").style.display = view==="medicamentos" ? "inline-flex" : "none";
+  $("#btnNewEmp").style.display = view==="empleados" ? "inline-flex" : "none";
+  $("#viewHoja").style.display = view==="hoja" ? "" : "none";
+  if(view==="empleados") renderEmpleados();
+  if(view==="hoja") renderGrid(true);
+}
+
+document.querySelectorAll(".view-btn").forEach(b=>{
+  b.onclick = ()=> switchView(b.dataset.view);
+});
+
+$("#btnNewEmp").onclick = ()=> openDrawerEmp(null);
+$("#btnCloseEmp").onclick = closeDrawerEmp;
+$("#overlayEmp").addEventListener("click", (e)=>{ if(e.target.id==="overlayEmp") closeDrawerEmp(); });
+
+$("#empForm").addEventListener("submit", async (e)=>{
+  e.preventDefault();
+  const data = {
+    nombre: $("#e_nombre").value.trim(),
+    cargo: $("#e_cargo").value.trim(),
+    telefono: $("#e_telefono").value.trim(),
+    activo: $("#e_activo").value,
+    notas: $("#e_notas").value.trim(),
+  };
+  if(editingEmpId){
+    const idx = employees.findIndex(e=>e.id===editingEmpId);
+    employees[idx] = {...employees[idx], ...data};
+    showToast("Empleado actualizado");
+  }else{
+    employees.unshift({id: uidEmp(), ...data});
+    showToast("Empleado registrado");
+  }
+  await persistEmployees();
+  renderEmpleadosDatalist();
+  closeDrawerEmp();
+  renderEmpleados();
+});
+
+$("#btnDeleteEmp").onclick = async ()=>{
+  if(!editingEmpId) return;
+  if(!confirm("¿Eliminar este empleado?")) return;
+  employees = employees.filter(e=>e.id!==editingEmpId);
+  await persistEmployees();
+  renderEmpleadosDatalist();
+  closeDrawerEmp();
+  renderEmpleados();
+  showToast("Empleado eliminado");
+};
+
+$("#searchEmp").addEventListener("input", renderEmpleados);
+
+function estadoBadge(estado){
+  const map = {
+    pendiente: ["Pendiente","badge-pendiente"],
+    apartado: ["Apartado","badge-apartado"],
+    enviado: ["Enviado al tramo","badge-enviado"],
+    entregado: ["Entregado","badge-entregado"],
+  };
+  const [label,cls] = map[estado] || map.pendiente;
+  return `<span class="badge ${cls}">${label}</span>`;
+}
+
+function daysPill(estado, fechaInicio){
+  if(estado === "entregado") return "";
+  const d = daysBetween(fechaInicio);
+  if(d===null) return "";
+  let cls = "days-ok";
+  if(d>=7) cls="days-danger"; else if(d>=3) cls="days-warn";
+  return `<span class="days-pill ${cls}">${d} día${d===1?"":"s"} pendiente</span>`;
+}
+
+function renderStats(){
+  const activos = records.filter(r=>r.estado!=="entregado");
+  const apartados = records.filter(r=>r.estado==="apartado").length;
+  const urgentes = records.filter(r=>r.estado!=="entregado" && daysBetween(r.fechaInicio)>=7).length;
+  const entregadosApp = records.filter(r=>r.estado==="entregado").length;
+  $("#stats").innerHTML = `
+    <div class="stat-card"><div class="num">${activos.length}</div><div class="lbl">Pendientes activos</div></div>
+    <div class="stat-card warn"><div class="num">${apartados}</div><div class="lbl">Apartados</div></div>
+    <div class="stat-card urgent"><div class="num">${urgentes}</div><div class="lbl">Con 7+ días de espera</div></div>
+    <div class="stat-card"><div class="num">${(historicoEntregados+entregadosApp).toLocaleString('es-DO')}</div><div class="lbl">Entregados en total (histórico)</div></div>
+  `;
+  $("#subtitle").textContent = `${activos.length} en seguimiento · ${(historicoEntregados+entregadosApp).toLocaleString('es-DO')} entregados en total`;
+}
+
+function renderTabs(){
+  const tabs = [
+    {id:"activos", label:"Pendientes"},
+    {id:"apartado", label:"Apartados"},
+    {id:"enviado", label:"Enviados al tramo"},
+    {id:"entregado", label:"Entregados"},
+    {id:"todos", label:"Todos"},
+  ];
+  $("#tabs").innerHTML = tabs.map(t=>
+    `<button class="tab ${currentTab===t.id?'active':''}" data-tab="${t.id}">${t.label}</button>`
+  ).join("");
+  document.querySelectorAll(".tab").forEach(b=>{
+    b.onclick = ()=>{ currentTab = b.dataset.tab; render(); };
+  });
+}
+
+function filteredRecords(){
+  const q = $("#search").value.trim().toLowerCase();
+  let list = records.slice();
+  if(currentTab==="activos") list = list.filter(r=>r.estado!=="entregado");
+  else if(currentTab!=="todos") list = list.filter(r=>r.estado===currentTab);
+  if(q){
+    list = list.filter(r =>
+      (r.cliente||"").toLowerCase().includes(q) ||
+      (r.medicamento||"").toLowerCase().includes(q) ||
+      (r.dependiente||"").toLowerCase().includes(q) ||
+      (r.factura||"").toLowerCase().includes(q) ||
+      (r.telefono||"").toLowerCase().includes(q)
+    );
+  }
+  list.sort((a,b)=>{
+    if(a.estado==="entregado" && b.estado!=="entregado") return 1;
+    if(b.estado==="entregado" && a.estado!=="entregado") return -1;
+    return (daysBetween(b.fechaInicio)||0) - (daysBetween(a.fechaInicio)||0);
+  });
+  return list;
+}
+
+function renderList(){
+  const list = filteredRecords();
+  if(list.length===0){
+    $("#list").innerHTML = `<div class="empty"><h3>No hay registros aquí</h3><p>Prueba otro filtro o registra un nuevo medicamento.</p></div>`;
+    return;
+  }
+  $("#list").innerHTML = list.map(r => `
+    <div class="row-card ${r.estado==='entregado'?'entregado':''}" data-id="${r.id}">
+      <div class="cell-title">
+        <span class="med">${escapeHtml(r.medicamento)||"—"}</span>
+        <span class="qty">${escapeHtml(r.cantidad)||""} ${r.factura?`· Fact. ${escapeHtml(r.factura)}`:""}</span>
+      </div>
+      <div class="cell-client">
+        <span class="name">${escapeHtml(r.cliente)||"—"}</span>
+        <span class="phone">${escapeHtml(r.telefono)||"sin teléfono"}</span>
+      </div>
+      <div class="cell-meta"><b>Dependiente</b>${escapeHtml(r.dependiente)||"—"}</div>
+      <div class="cell-meta"><b>Inicio</b>${fmtDate(r.fechaInicio)}</div>
+      <div class="cell-meta">
+        ${estadoBadge(r.estado)}
+        ${daysPill(r.estado, r.fechaInicio)}
+      </div>
+      <div class="row-actions">
+        ${r.estado!=="entregado" ? `<button class="btn btn-outline btn-sm" data-action="entregar">Marcar entregado</button>`:""}
+        <button class="btn btn-outline btn-sm btn-icon" data-action="editar" title="Editar">✎</button>
+      </div>
+      ${r.observaciones ? `<div class="obs-line">${escapeHtml(r.observaciones)}</div>` : ""}
+    </div>
+  `).join("");
+
+  document.querySelectorAll(".row-card").forEach(card=>{
+    const id = card.dataset.id;
+    card.querySelectorAll("[data-action]").forEach(btn=>{
+      btn.onclick = (e)=>{
+        e.stopPropagation();
+        const action = btn.dataset.action;
+        if(action==="entregar") marcarEntregado(id);
+        if(action==="editar") openDrawer(id);
+      };
+    });
+  });
+}
+
+function escapeHtml(str){
+  if(str===undefined || str===null) return "";
+  return String(str).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+function render(){
+  renderStats();
+  renderTabs();
+  renderList();
+}
+
+async function marcarEntregado(id){
+  const rec = records.find(r=>r.id===id);
+  if(!rec) return;
+  rec.estado = "entregado";
+  rec.fechaEntregaReal = todayISO();
+  markDirty(rec.id);
+  await persist();
+  render();
+  showToast(`${rec.medicamento} marcado como entregado`);
+}
+
+function openDrawer(id){
+  editingId = id;
+  const overlay = $("#overlay");
+  const form = $("#recordForm");
+  form.reset();
+  renderEmpleadosDatalist();
+  if(id){
+    const rec = records.find(r=>r.id===id);
+    $("#drawerTitle").textContent = "Editar registro";
+    const sel = $("#f_dependiente");
+    if(rec.dependiente && ![...sel.options].some(o=>o.value===rec.dependiente)){
+      sel.insertAdjacentHTML("beforeend", `<option value="${escapeHtml(rec.dependiente)}">${escapeHtml(rec.dependiente)} (no registrado)</option>`);
+    }
+    sel.value = rec.dependiente||"";
+    $("#f_fechaInicio").value = rec.fechaInicio||"";
+    $("#f_medicamento").value = rec.medicamento||"";
+    $("#f_cantidad").value = rec.cantidad||"";
+    $("#f_factura").value = rec.factura||"";
+    $("#f_cliente").value = rec.cliente||"";
+    $("#f_telefono").value = rec.telefono||"";
+    $("#f_autorizado").value = rec.autorizado||"";
+    $("#f_estado").value = rec.estado||"pendiente";
+    $("#f_fechaEntrega").value = rec.fechaEntrega||"";
+    $("#f_hora").value = rec.hora||"";
+    $("#f_observaciones").value = rec.observaciones||"";
+    $("#btnDelete").style.display = "inline-flex";
+  }else{
+    $("#drawerTitle").textContent = "Registrar medicamento";
+    $("#f_fechaInicio").value = todayISO();
+    $("#f_estado").value = "pendiente";
+    $("#btnDelete").style.display = "none";
+  }
+  overlay.classList.add("open");
+}
+
+function closeDrawer(){
+  $("#overlay").classList.remove("open");
+  editingId = null;
+}
+
+$("#btnNew").onclick = ()=> openDrawer(null);
+$("#btnClose").onclick = closeDrawer;
+$("#overlay").addEventListener("click", (e)=>{ if(e.target.id==="overlay") closeDrawer(); });
+
+$("#recordForm").addEventListener("submit", async (e)=>{
+  e.preventDefault();
+  const data = {
+    dependiente: $("#f_dependiente").value.trim(),
+    fechaInicio: $("#f_fechaInicio").value,
+    medicamento: $("#f_medicamento").value.trim(),
+    cantidad: $("#f_cantidad").value.trim(),
+    factura: $("#f_factura").value.trim(),
+    cliente: $("#f_cliente").value.trim(),
+    telefono: $("#f_telefono").value.trim(),
+    autorizado: $("#f_autorizado").value.trim(),
+    estado: $("#f_estado").value,
+    fechaEntrega: $("#f_fechaEntrega").value,
+    hora: $("#f_hora").value.trim(),
+    observaciones: $("#f_observaciones").value.trim(),
+  };
+  if(editingId){
+    const idx = records.findIndex(r=>r.id===editingId);
+    records[idx] = {...records[idx], ...data};
+    markDirty(editingId);
+    showToast("Registro actualizado");
+  }else{
+    const nr = {id: uid(), ...data, fechaEntregaReal: data.estado==="entregado"?todayISO():""};
+    records.unshift(nr); markDirty(nr.id);
+    showToast("Medicamento registrado");
+  }
+  await persist();
+  closeDrawer();
+  render();
+});
+
+$("#btnDelete").onclick = async ()=>{
+  if(!editingId) return;
+  if(!confirm("¿Eliminar este registro?")) return;
+  markDeleted(editingId);
+  records = records.filter(r=>r.id!==editingId);
+  await persist();
+  closeDrawer();
+  render();
+  showToast("Registro eliminado");
+};
+
+$("#search").addEventListener("input", render);
+
+/* ===== IMPORTAR / EXPORTAR EXCEL ===== */
+const POSITIONAL_FIELDS = ["dependiente","fechaInicio","medicamento","cantidad","telefono","cliente","autorizado","fechaEntrega","hora","observaciones","factura"];
+
+// Reconoce columnas por el nombre del encabezado (sin importar orden, tildes ni mayúsculas)
+const HEADER_RULES = [
+  [/^id$|^idregistro$|^codigo$/, "id"],
+  [/^entregadoel|fechareal|entregareal/, "fechaEntregaReal"],
+  [/fecha.*(entrega|prometida|retiro)|^entrega|fechaent/, "fechaEntrega"],
+  [/^fecha|fechaini|fechapedido|fecharegistro|fechaapart/, "fechaInicio"],
+  [/hora/, "hora"],
+  [/telef|celular|^tel$|whatsapp|contacto/, "telefono"],
+  [/factura|^ncf|ticket|recibo|^fact$|nofac/, "factura"],
+  [/^estado|^estatus/, "estado"],
+  [/observ|^nota|coment|^obs$/, "observaciones"],
+  [/medic|producto|descrip|articulo|^med$/, "medicamento"],
+  [/^cant|^qty|unidades/, "cantidad"],
+  [/autoriz/, "autorizado"],
+  [/client|paciente|^nombre/, "cliente"],
+  [/depend|empleado|vendedor|atendi/, "dependiente"],
+];
+
+const ESTADO_LABELS = {pendiente:"Pendiente", apartado:"Apartado", enviado:"Enviado al tramo", entregado:"Entregado"};
+
+function normHeader(s){
+  return (s==null ? "" : s).toString().toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+    .replace(/[^a-z0-9]/g,"");
+}
+
+function mapHeaders(row){
+  const map = {};
+  (row||[]).forEach((h,i)=>{
+    const n = normHeader(h);
+    if(!n) return;
+    for(const [re, field] of HEADER_RULES){
+      if(re.test(n)){ if(map[field]===undefined) map[field]=i; break; }
+    }
+  });
+  return map;
+}
+
+const pad2 = (n)=> String(n).padStart(2,"0");
+
+function excelDateToISO(v){
+  if(v===null || v===undefined || v==="") return "";
+  if(v instanceof Date && !isNaN(v)) return v.toISOString().slice(0,10);
+  if(typeof v === "number"){
+    if(v > 20000 && v < 80000) return new Date(Math.round((v-25569)*86400000)).toISOString().slice(0,10);
+    return "";
+  }
+  const s = v.toString().trim();
+  let m = s.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})/);
+  if(m) return `${m[1]}-${pad2(m[2])}-${pad2(m[3])}`;
+  m = s.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{2,4})/);
+  if(m){
+    let d = +m[1], mo = +m[2], y = +m[3];
+    if(y < 100) y += 2000;
+    if(mo > 12 && d <= 12){ const t=d; d=mo; mo=t; }
+    if(mo<1 || mo>12 || d<1 || d>31) return "";
+    return `${y}-${pad2(mo)}-${pad2(d)}`;
+  }
+  if(/^\d{5}$/.test(s)) return excelDateToISO(Number(s));
+  return "";
+}
+
+function isoToSerial(iso){
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso||"");
+  if(!m) return "";
+  return Math.floor(Date.UTC(+m[1],+m[2]-1,+m[3])/86400000) + 25569;
+}
+
+function cellText(v){
+  if(v===null || v===undefined) return "";
+  if(v instanceof Date) return isNaN(v) ? "" : v.toISOString().slice(0,10);
+  return v.toString().trim();
+}
+
+function excelTimeToStr(v){
+  if(typeof v === "number" && v >= 0 && v < 1){
+    const mins = Math.round(v*1440);
+    return `${pad2(Math.floor(mins/60)%24)}:${pad2(mins%60)}`;
+  }
+  return cellText(v);
+}
+
+function parseEstado(txt){
+  const u = (txt||"").toString().toUpperCase();
+  if(!u) return "";
+  if(u.includes("ENTREG") || u.includes("ENTRGAD") || u.includes("EBTREGAD")) return "entregado";
+  if(u.includes("APART")) return "apartado";
+  if(u.includes("TRAMO") || u.includes("ENV")) return "enviado";
+  if(u.includes("PEND")) return "pendiente";
+  return "";
+}
+
+/* Lee las filas de una hoja. Devuelve {nuevos, stats}. Los registros ya existentes se MODIFICAN (por ID o por factura+medicamento+cliente+fecha). */
+function parseImportRows(rows, state){
+  const stats = {leidas:0, nuevos:0, actualizados:0, sinCambios:0, entregados:0, sinDatos:0, modo:"", columnas:{}};
+  const nuevos = [];
+
+  let headerIdx = -1, bestMap = {}, bestCount = 0;
+  for(let i=0; i<Math.min(rows.length, 15); i++){
+    const map = mapHeaders(rows[i]);
+    const c = Object.keys(map).length;
+    if(c > bestCount){ bestCount = c; bestMap = map; headerIdx = i; }
+  }
+  let colMap, startRow;
+  if(bestCount >= 3){ colMap = bestMap; startRow = headerIdx + 1; stats.modo = "encabezados"; }
+  else{ colMap = {}; POSITIONAL_FIELDS.forEach((f,i)=> colMap[f]=i); startRow = 1; stats.modo = "posición"; }
+  stats.columnas = colMap;
+  const get = (row, f)=> colMap[f]===undefined ? "" : row[colMap[f]];
+  const mkKey = (f,m,c,d)=> f+"|"+m+"|"+c+"|"+d;
+
+  for(let i=startRow; i<rows.length; i++){
+    const row = rows[i];
+    if(!row || !row.some(c => cellText(c) !== "")) continue;
+    stats.leidas++;
+
+    const medicamento = cellText(get(row,"medicamento"));
+    const cliente = cellText(get(row,"cliente"));
+    if(!medicamento && !cliente){ stats.sinDatos++; continue; }
+
+    const obs = cellText(get(row,"observaciones"));
+    const estadoCol = parseEstado(cellText(get(row,"estado")));
+    const estadoObs = parseEstado(obs);
+    const entregadoPorObs = /^(ENTREGAD|ENTRGAD|EBTREGAD)/.test(obs.toUpperCase());
+    const factura = cellText(get(row,"factura"));
+    const fechaInicio = excelDateToISO(get(row,"fechaInicio"));
+    const idCol = cellText(get(row,"id"));
+    const key = mkKey(factura,medicamento,cliente,fechaInicio);
+
+    const incoming = {
+      dependiente: cellText(get(row,"dependiente")),
+      fechaInicio, medicamento,
+      cantidad: cellText(get(row,"cantidad")),
+      telefono: cellText(get(row,"telefono")),
+      cliente,
+      autorizado: cellText(get(row,"autorizado")),
+      fechaEntrega: excelDateToISO(get(row,"fechaEntrega")),
+      hora: excelTimeToStr(get(row,"hora")),
+      observaciones: obs,
+      factura,
+    };
+
+    let estado = estadoCol || (entregadoPorObs ? "entregado" : (estadoObs && estadoObs !== "entregado" ? estadoObs : "pendiente"));
+    if(estadoCol === "" && estadoObs === "entregado" && !entregadoPorObs) estado = "pendiente";
+
+    // ¿Existe ya en el sistema?
+    const match = (idCol && state.byId.get(idCol)) || state.byKey.get(key);
+
+    if(match){
+      let changed = false;
+      for(const [f,v] of Object.entries(incoming)){
+        if(v !== "" && v !== (match[f]||"")){ match[f] = v; changed = true; }
+      }
+      const explicitEstado = estadoCol || (entregadoPorObs ? "entregado" : (estadoObs || ""));
+      if(explicitEstado && explicitEstado !== match.estado){
+        match.estado = explicitEstado;
+        if(explicitEstado === "entregado" && !match.fechaEntregaReal){
+          match.fechaEntregaReal = excelDateToISO(get(row,"fechaEntregaReal")) || todayISO();
+        }
+        if(explicitEstado !== "entregado") match.fechaEntregaReal = "";
+        changed = true;
+      }
+      if(changed) stats.actualizados++; else stats.sinCambios++;
+      continue;
+    }
+
+    // Registro nuevo: los ya entregados no se agregan
+    if(estado === "entregado"){ stats.entregados++; continue; }
+
+    const rec = {id: uid(), ...incoming, estado, fechaEntregaReal:""};
+    nuevos.push(rec);
+    state.byKey.set(key, rec);
+    state.byId.set(rec.id, rec);
+  }
+  stats.nuevos = nuevos.length;
+  return {nuevos, stats};
+}
+
+function loadScript(src){
+  return new Promise((resolve,reject)=>{
+    const s = document.createElement("script");
+    s.src = src;
+    s.onload = resolve;
+    s.onerror = ()=> reject(new Error("no cargó "+src));
+    document.head.appendChild(s);
+  });
+}
+
+async function ensureXLSX(){
+  if(window.XLSX) return;
+  const urls = [
+    "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js",
+    "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js",
+  ];
+  for(const u of urls){
+    try{ await loadScript(u); if(window.XLSX) return; }catch(e){ console.warn(e.message); }
+  }
+  throw new Error("No se pudo cargar el lector de Excel. Revisa tu conexión a internet.");
+}
+
+$("#btnImport").onclick = ()=> $("#fileImport").click();
+
+$("#fileImport").addEventListener("change", async (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  try{
+    showToast("Leyendo Excel…", 4000);
+    await ensureXLSX();
+    const buf = await file.arrayBuffer();
+    const wb = window.XLSX.read(buf, {type:"array"});
+
+    const sheets = wb.SheetNames
+      .filter(n => normHeader(n) !== "empleados")
+      .map(n => ({name:n, rows: window.XLSX.utils.sheet_to_json(wb.Sheets[n], {header:1, raw:true, defval:"", blankrows:false})}))
+      .filter(s => s.rows.length >= 2);
+    if(!sheets.length){ showToast("El Excel no tiene filas de datos.", 6000); return; }
+
+    // Hojas con encabezados reconocidos (ej. las que exporta el sistema); si no hay, se usa la hoja más grande
+    const hasHeaders = (rows)=> rows.slice(0,15).some(r => Object.keys(mapHeaders(r)).length >= 3);
+    let toRead = sheets.filter(s => hasHeaders(s.rows));
+    if(!toRead.length) toRead = [sheets.reduce((a,b)=> b.rows.length > a.rows.length ? b : a)];
+
+    const state = {byId: new Map(records.map(r=>[r.id,r])), byKey: new Map()};
+    records.forEach(r => state.byKey.set((r.factura||"")+"|"+(r.medicamento||"")+"|"+(r.cliente||"")+"|"+(r.fechaInicio||""), r));
+
+    const total = {nuevos:0, actualizados:0, sinCambios:0, entregados:0, sinDatos:0, leidas:0};
+    let allNew = [];
+    for(const s of toRead){
+      const {nuevos, stats} = parseImportRows(s.rows, state);
+      allNew = allNew.concat(nuevos);
+      for(const k of Object.keys(total)) total[k] += stats[k];
+      console.log("Hoja", s.name, stats);
+    }
+
+    records = [...allNew, ...records];
+    records.forEach(r=>markDirty(r.id));
+    await persist();
+    render();
+
+    const parts = [`${total.nuevos} nuevos`];
+    if(total.actualizados) parts.push(`${total.actualizados} modificados`);
+    if(total.sinCambios) parts.push(`${total.sinCambios} sin cambios`);
+    if(total.entregados) parts.push(`${total.entregados} entregados omitidos`);
+    if(total.sinDatos) parts.push(`${total.sinDatos} sin medicamento ni cliente`);
+    let msg = "Importado: " + parts.join(", ");
+    if(total.leidas > 0 && !total.nuevos && !total.actualizados && !total.sinCambios && !total.entregados)
+      msg += ". Revisa los encabezados del Excel.";
+    showToast(msg, 7000);
+  }catch(err){
+    console.error(err);
+    showToast("Error al importar: "+(err && err.message ? err.message : err), 8000);
+  }finally{
+    e.target.value = "";
+  }
+});
+
+/* ===== EXPORTAR: crea un Excel nuevo con los datos actuales del sistema ===== */
+function buildSheet(headers, rowsData, dateCols, widths){
+  const ws = window.XLSX.utils.aoa_to_sheet([headers, ...rowsData]);
+  const range = window.XLSX.utils.decode_range(ws["!ref"]);
+  for(let R = 1; R <= range.e.r; R++){
+    for(const C of dateCols){
+      const cell = ws[window.XLSX.utils.encode_cell({r:R, c:C})];
+      if(cell && cell.t === "n") cell.z = "dd/mm/yyyy";
+    }
+  }
+  ws["!cols"] = widths.map(w => ({wch:w}));
+  ws["!autofilter"] = {ref: ws["!ref"]};
+  ws["!freeze"] = {xSplit:0, ySplit:1};
+  return ws;
+}
+
+$("#btnExport").onclick = async ()=>{
+  try{
+    await ensureXLSX();
+    const byFecha = (a,b)=> (a.fechaInicio||"9999").localeCompare(b.fechaInicio||"9999");
+    const activos = records.filter(r=>r.estado!=="entregado").slice().sort(byFecha);
+    const entregados = records.filter(r=>r.estado==="entregado").slice().sort(byFecha);
+
+    const headersAct = ["Dependiente","Fecha","Medicamento","Cantidad","Teléfono","Cliente","Autorizado por","Fecha entrega","Hora","Observaciones","Factura","Estado","Días en espera","ID"];
+    const rowAct = r => [r.dependiente||"", isoToSerial(r.fechaInicio), r.medicamento||"", r.cantidad||"", r.telefono||"", r.cliente||"",
+      r.autorizado||"", isoToSerial(r.fechaEntrega), r.hora||"", r.observaciones||"", r.factura||"", ESTADO_LABELS[r.estado]||"Pendiente",
+      r.estado==="entregado" ? "" : (daysBetween(r.fechaInicio) ?? ""), r.id];
+    const widthsAct = [16,12,30,10,14,24,18,13,9,28,12,16,13,26];
+
+    const headersEnt = ["Dependiente","Fecha","Medicamento","Cantidad","Teléfono","Cliente","Autorizado por","Fecha entrega","Hora","Observaciones","Factura","Estado","Entregado el","ID"];
+    const rowEnt = r => [r.dependiente||"", isoToSerial(r.fechaInicio), r.medicamento||"", r.cantidad||"", r.telefono||"", r.cliente||"",
+      r.autorizado||"", isoToSerial(r.fechaEntrega), r.hora||"", r.observaciones||"", r.factura||"", ESTADO_LABELS.entregado,
+      isoToSerial(r.fechaEntregaReal), r.id];
+
+    const wb = window.XLSX.utils.book_new();
+    window.XLSX.utils.book_append_sheet(wb, buildSheet(headersAct, activos.map(rowAct), [1,7], widthsAct), "Pendientes");
+    window.XLSX.utils.book_append_sheet(wb, buildSheet(headersEnt, entregados.map(rowEnt), [1,7,12], widthsAct), "Entregados");
+
+    const empRows = employees.slice().sort((a,b)=>(a.nombre||"").localeCompare(b.nombre||""))
+      .map(e => [e.nombre||"", e.cargo||"", e.telefono||"", (e.activo===false||e.activo==="0") ? "Inactivo" : "Activo"]);
+    window.XLSX.utils.book_append_sheet(wb, buildSheet(["Nombre","Cargo","Teléfono","Estado"], empRows, [], [26,20,14,10]), "Empleados");
+
+    const fname = `Medicamentos_Pendientes_${todayISO()}.xlsx`;
+    window.XLSX.writeFile(wb, fname);
+    showToast(`Excel creado: ${activos.length} pendientes, ${entregados.length} entregados`, 5000);
+  }catch(err){
+    console.error(err);
+    showToast("No se pudo crear el Excel: "+(err && err.message ? err.message : err), 8000);
+  }
+};
+
+/* ===== VÍNCULO EN VIVO CON EXCEL (File System Access API · Chrome/Edge) ===== */
+const hasFS = !!(window.showOpenFilePicker && window.showSaveFilePicker);
+let fileHandle=null, pendingHandle=null, lastMod=0, saving=false, loadingFile=false, seq=0, empDirty=false, saveT=null;
+const dirtyMap=new Map(), delMap=new Map();
+const XLS_TYPES=[{description:"Excel",accept:{"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":[".xlsx"]}}];
+const markDirty=id=>{ dirtyMap.set(id,++seq); delMap.delete(id); };
+const markDeleted=id=>{ delMap.set(id,++seq); dirtyMap.delete(id); };
+const hasDirty=()=>dirtyMap.size>0||delMap.size>0||empDirty;
+const keyOf=r=>(r.factura||"")+"|"+(r.medicamento||"")+"|"+(r.cliente||"")+"|"+(r.fechaInicio||"");
+const hash=s=>{let h=5381;for(const c of s)h=((h<<5)+h+c.charCodeAt(0))|0;return (h>>>0).toString(36);};
+const idb=(m,k,v)=>new Promise((res,rej)=>{const o=indexedDB.open("medpend-fs",1);o.onupgradeneeded=()=>o.result.createObjectStore("h");o.onerror=()=>rej(o.error);
+  o.onsuccess=()=>{const s=o.result.transaction("h",m==="get"?"readonly":"readwrite").objectStore("h");const q=m==="get"?s.get(k):m==="set"?s.put(v,k):s.delete(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error);};});
+
+function setSync(st,msg){
+  const linked=!!fileHandle, any=linked||!!pendingHandle;
+  $("#btnOpenXls").style.display=$("#btnNewXls").style.display=any?"none":"";
+  $("#btnUnlink").style.display=linked?"":"none";
+  $("#btnReconnect").style.display=(pendingHandle&&!linked)?"":"none";
+  const p=$("#syncPill"); p.style.display=any?"":"none"; p.dataset.st=st;
+  const n=(fileHandle||pendingHandle||{}).name||"";
+  const T={ok:"Sincronizado · "+n,saving:"Guardando en Excel…",pending:"Cambios por guardar…",blocked:"Excel abierto/bloqueado: ciérralo para guardar (se reintenta solo)",reconnect:"Pulsa Reconectar · "+n,error:msg||"Error"};
+  $("#syncText").textContent=T[st]||""; p.title=msg||"";
+}
+function queueSave(){ if(!fileHandle) return; setSync("pending"); clearTimeout(saveT); saveT=setTimeout(flushSave,600); }
+
+function buildWorkbook(){
+  const X=window.XLSX, byF=(a,b)=>(a.fechaInicio||"9999").localeCompare(b.fechaInicio||"9999");
+  const H=["Dependiente","Fecha","Medicamento","Cantidad","Teléfono","Cliente","Autorizado por","Fecha entrega","Hora","Observaciones","Factura","Estado"];
+  const row=r=>[r.dependiente||"",isoToSerial(r.fechaInicio),r.medicamento||"",r.cantidad||"",r.telefono||"",r.cliente||"",r.autorizado||"",isoToSerial(r.fechaEntrega),r.hora||"",r.observaciones||"",r.factura||"",ESTADO_LABELS[r.estado]||"Pendiente"];
+  const W=[16,12,30,10,14,24,18,13,9,28,12,16,13,26], wb=X.utils.book_new();
+  const act=records.filter(r=>r.estado!=="entregado").sort(byF), ent=records.filter(r=>r.estado==="entregado").sort(byF);
+  X.utils.book_append_sheet(wb,buildSheet([...H,"Días en espera","ID"],act.map(r=>[...row(r),daysBetween(r.fechaInicio)??"",r.id]),[1,7],W),"Pendientes");
+  X.utils.book_append_sheet(wb,buildSheet([...H,"Entregado el","ID"],ent.map(r=>[...row(r),isoToSerial(r.fechaEntregaReal),r.id]),[1,7,12],W),"Entregados");
+  X.utils.book_append_sheet(wb,buildSheet(["Nombre","Cargo","Teléfono","Estado","Notas","ID"],employees.map(e=>[e.nombre||"",e.cargo||"",e.telefono||"",(e.activo===false||e.activo==="0")?"Inactivo":"Activo",e.notas||"",e.id]),[],[26,20,14,10,24,22]),"Empleados");
+  return wb;
+}
+function detectCols(rows){
+  let bi=-1,bm={},bc=0;
+  for(let i=0;i<Math.min(rows.length,15);i++){const m=mapHeaders(rows[i]),c=Object.keys(m).length;if(c>bc){bc=c;bm=m;bi=i;}}
+  if(bc>=3) return {colMap:bm,startRow:bi+1,ok:true};
+  const cm={}; POSITIONAL_FIELDS.forEach((f,i)=>cm[f]=i); return {colMap:cm,startRow:1,ok:false};
+}
+function parseEmpRows(rows){
+  if(rows.length<2) return [];
+  const h=rows[0].map(normHeader), ix=re=>h.findIndex(x=>re.test(x));
+  const iN=ix(/^nombre/),iC=ix(/^cargo/),iT=ix(/^tel/),iE=ix(/^(estado|activo)/),iI=ix(/^id$/),iO=ix(/^nota/);
+  if(iN<0) return [];
+  const c=(r,i)=>i<0?"":cellText(r[i]);
+  return rows.slice(1).filter(r=>c(r,iN)).map(r=>({id:c(r,iI)||"emp-"+normHeader(c(r,iN)),nombre:c(r,iN),cargo:c(r,iC),telefono:c(r,iT),activo:/inact|^0$|^no$/i.test(c(r,iE))?"0":"1",notas:c(r,iO)}));
+}
+function readWorkbook(wb){
+  const X=window.XLSX, out={recs:[],emps:[],fix:[],app:false,hasEmp:false}, sheets=[];
+  const kid=new Map(), used=new Map(); records.forEach(r=>{ if(!kid.has(keyOf(r))) kid.set(keyOf(r),r.id); });
+  for(const name of wb.SheetNames){
+    const n=normHeader(name), rows=X.utils.sheet_to_json(wb.Sheets[name],{header:1,raw:true,defval:"",blankrows:false});
+    if(n==="empleados"){ out.hasEmp=true; out.emps.push(...parseEmpRows(rows)); continue; }
+    if(n==="pendientes"||n==="entregados") out.app=true;
+    if(rows.length) sheets.push({n,rows,det:detectCols(rows)});
+  }
+  let use=sheets.filter(s=>s.det.ok);
+  if(!use.length&&sheets.length) use=[sheets.reduce((a,b)=>b.rows.length>a.rows.length?b:a)];
+  for(const s of use){
+    const {colMap,startRow}=s.det, g=(row,f)=>colMap[f]===undefined?"":row[colMap[f]];
+    for(let i=startRow;i<s.rows.length;i++){
+      const row=s.rows[i]; if(!row||!row.some(c=>cellText(c)!=="")) continue;
+      const medicamento=cellText(g(row,"medicamento")), cliente=cellText(g(row,"cliente")), idc=cellText(g(row,"id"));
+      if(!medicamento&&!cliente&&!idc) continue;
+      const obs=cellText(g(row,"observaciones")), eo=parseEstado(obs), ec=parseEstado(cellText(g(row,"estado")));
+      const porObs=/^(ENTREGAD|ENTRGAD|EBTREGAD)/.test(obs.toUpperCase());
+      const estado=ec||(porObs?"entregado":(eo&&eo!=="entregado"?eo:""))||(s.n.includes("entregad")?"entregado":"pendiente");
+      const r={id:idc,dependiente:cellText(g(row,"dependiente")),fechaInicio:excelDateToISO(g(row,"fechaInicio")),medicamento,cantidad:cellText(g(row,"cantidad")),telefono:cellText(g(row,"telefono")),cliente,autorizado:cellText(g(row,"autorizado")),fechaEntrega:excelDateToISO(g(row,"fechaEntrega")),hora:excelTimeToStr(g(row,"hora")),observaciones:obs,factura:cellText(g(row,"factura")),estado,fechaEntregaReal:estado==="entregado"?excelDateToISO(g(row,"fechaEntregaReal")):""};
+      if(!r.id){ const k=keyOf(r),n=used.get(k)||0; used.set(k,n+1); r.id=(n===0&&kid.get(k))||"rec-"+hash(k)+"-"+n; out.fix.push(r.id); }
+      out.recs.push(r);
+    }
+  }
+  return out;
+}
+/* Fusiona lo que viene del Excel con lo que hay en pantalla: los cambios locales sin guardar ganan */
+function applyExternal(d){
+  const loc=new Map(records.map(r=>[r.id,r])), seen=new Set(), out=[];
+  for(const r of d.recs){ if(delMap.has(r.id)||seen.has(r.id)) continue; seen.add(r.id); out.push(dirtyMap.has(r.id)&&loc.has(r.id)?loc.get(r.id):r); }
+  for(const r of records) if(!seen.has(r.id)&&dirtyMap.has(r.id)) out.push(r);
+  records=out;
+  if(d.hasEmp&&!empDirty) employees=d.emps;
+  d.fix.forEach(markDirty);
+}
+function renderAll(){ render(); if(currentView==="empleados") renderEmpleados(); if(currentView==="hoja") renderGrid(); }
+const readFile=async f=>readWorkbook(window.XLSX.read(await f.arrayBuffer(),{type:"array"}));
+
+async function attach(h,mode){
+  await ensureXLSX();
+  if(await h.requestPermission({mode:"readwrite"})!=="granted") throw new Error("Permiso denegado");
+  const f=await h.getFile();
+  const d=f.size?await readFile(f):{recs:[],emps:[],fix:[],app:true,hasEmp:false};
+  if(mode==="open"&&f.size&&!d.app&&d.recs.length&&!confirm("Este Excel no tiene el formato del sistema.\n\nAl guardar se reorganizará en las hojas Pendientes / Entregados / Empleados. Te recomiendo tener una copia del archivo.\n\n¿Continuar?")) return;
+  fileHandle=h; pendingHandle=null; lastMod=f.lastModified; await idb("set","excel",h).catch(()=>{});
+  if(mode==="open"){
+    const ids=new Set(d.recs.map(r=>r.id)), ks=new Set(d.recs.map(keyOf));
+    const extra=records.filter(r=>!ids.has(r.id)&&!ks.has(keyOf(r)));
+    records=[...d.recs,...extra];
+    if(d.hasEmp){ const en=new Set(d.emps.map(e=>e.id)); employees=[...d.emps,...employees.filter(e=>!en.has(e.id))]; }
+    records.forEach(r=>markDirty(r.id)); empDirty=true;
+    showToast(extra.length?`${d.recs.length} leídos del Excel · ${extra.length} del sistema añadidos`:`${d.recs.length} registros cargados del Excel`,5000);
+  }else if(d.recs.length||!records.length){ applyExternal(d); }
+  else{ records.forEach(r=>markDirty(r.id)); empDirty=true; }
+  await persist(); await persistEmployees(true); renderEmpleadosDatalist(); renderAll(); setSync("ok"); flushSave();
+}
+async function flushSave(){
+  clearTimeout(saveT);
+  if(!fileHandle||saving||loadingFile) return;
+  if(!hasDirty()){ setSync("ok"); return; }
+  saving=true; setSync("saving"); let se=false;
+  try{
+    await ensureXLSX();
+    const f=await fileHandle.getFile();
+    if(f.size&&f.lastModified!==lastMod){ applyExternal(await readFile(f)); renderAll(); }
+    const sd=new Map(dirtyMap), sx=new Map(delMap); se=empDirty; empDirty=false;
+    const buf=window.XLSX.write(buildWorkbook(),{type:"array",bookType:"xlsx"});
+    const w=await fileHandle.createWritable(); await w.write(buf); await w.close();
+    lastMod=(await fileHandle.getFile()).lastModified;
+    sd.forEach((v,k)=>{ if(dirtyMap.get(k)===v) dirtyMap.delete(k); });
+    sx.forEach((v,k)=>{ if(delMap.get(k)===v) delMap.delete(k); });
+    setSync(hasDirty()?"pending":"ok"); if(hasDirty()) saveT=setTimeout(flushSave,600);
+  }catch(e){
+    console.error("guardar Excel",e); if(se) empDirty=true;
+    if(e.name==="NotAllowedError"){ pendingHandle=fileHandle; fileHandle=null; setSync("reconnect"); }
+    else setSync("blocked",e.message);
+  }finally{ saving=false; }
+}
+async function poll(){
+  if(!fileHandle||saving||loadingFile) return;
+  if(hasDirty()) return flushSave();
+  try{
+    const f=await fileHandle.getFile();
+    if(f.lastModified===lastMod||!f.size) return;
+    loadingFile=true;
+    applyExternal(await readFile(f)); lastMod=f.lastModified;
+    await persist(); await persistEmployees(true); renderEmpleadosDatalist(); renderAll();
+    showToast("Cambios del Excel cargados");
+  }catch(e){ console.warn("poll",e); }
+  finally{ loadingFile=false; }
+  if(hasDirty()) flushSave();
+}
+setInterval(poll,2500);
+document.addEventListener("visibilitychange",()=>{ if(!document.hidden) poll(); });
+window.addEventListener("beforeunload",e=>{ if(fileHandle&&hasDirty()){ e.preventDefault(); e.returnValue=""; } });
+
+const noFS=()=>showToast("Para vincular el Excel usa Chrome o Edge en computadora.",6000);
+$("#btnOpenXls").onclick=async()=>{
+  if(!hasFS) return noFS();
+  try{ const [h]=await showOpenFilePicker({types:XLS_TYPES}); await attach(h,"open"); }
+  catch(e){ if(e.name!=="AbortError"){ console.error(e); showToast("No se pudo abrir: "+e.message,6000); } }
+};
+$("#btnNewXls").onclick=async()=>{
+  if(!hasFS) return noFS();
+  try{
+    const h=await showSaveFilePicker({suggestedName:"Medicamentos_Pendientes.xlsx",types:XLS_TYPES});
+    await ensureXLSX(); fileHandle=h; pendingHandle=null; lastMod=0; await idb("set","excel",h).catch(()=>{});
+    records.forEach(r=>markDirty(r.id)); empDirty=true; await flushSave(); showToast("Excel creado y vinculado",4000);
+  }catch(e){ if(e.name!=="AbortError"){ console.error(e); fileHandle=null; setSync("none"); showToast("No se pudo crear: "+e.message,6000); } }
+};
+$("#btnReconnect").onclick=async()=>{
+  const h=pendingHandle; if(!h) return;
+  try{ await attach(h,"restore"); }catch(e){ pendingHandle=h; fileHandle=null; setSync("reconnect"); showToast("No se pudo reconectar: "+e.message,6000); }
+};
+$("#btnUnlink").onclick=async()=>{
+  if(hasDirty()&&!confirm("Hay cambios que aún no se guardaron en el Excel. ¿Desvincular de todos modos?")) return;
+  fileHandle=null; pendingHandle=null; dirtyMap.clear(); delMap.clear(); empDirty=false;
+  await idb("del","excel").catch(()=>{}); setSync("none"); showToast("Excel desvinculado");
+};
+async function restoreHandle(){
+  if(!hasFS) return;
+  try{
+    const h=await idb("get","excel"); if(!h) return;
+    if(await h.queryPermission({mode:"readwrite"})==="granted") await attach(h,"restore");
+    else{ pendingHandle=h; setSync("reconnect"); }
+  }catch(e){ console.warn("restore",e); }
+}
+
+/* ===== HOJA EDITABLE (como Excel, guarda en vivo) ===== */
+const GCOLS=[["dependiente","Dependiente","dep"],["fechaInicio","Fecha","date"],["medicamento","Medicamento"],["cantidad","Cantidad"],["telefono","Teléfono"],["cliente","Cliente"],["autorizado","Autorizado"],["fechaEntrega","F. entrega","date"],["hora","Hora"],["observaciones","Observaciones"],["factura","Factura"],["estado","Estado","estado"],["fechaEntregaReal","Entregado el","date"]];
+let gridLimit=300, gridStale=false, gridT=null;
+$("#gridHead").innerHTML="<tr>"+GCOLS.map(c=>`<th>${c[1]}</th>`).join("")+"<th></th></tr>";
+function gridList(){
+  const q=$("#searchGrid").value.trim().toLowerCase(), f=$("#gridFilter").value;
+  return records.filter(r=>(f==="todos"||(f==="activos"?r.estado!=="entregado":r.estado===f))&&(!q||[r.cliente,r.medicamento,r.dependiente,r.factura,r.telefono].some(x=>(x||"").toLowerCase().includes(q))))
+    .sort((a,b)=>(b.fechaInicio||"").localeCompare(a.fechaInicio||""));
+}
+function renderGrid(force){
+  const body=$("#gridBody");
+  if(!force&&body.contains(document.activeElement)){ gridStale=true; return; }
+  gridStale=false;
+  const all=gridList(), list=all.slice(0,gridLimit);
+  $("#gridInfo").textContent=`${list.length} de ${all.length} filas`;
+  $("#gridMore").style.display=all.length>gridLimit?"":"none";
+  const cell=(r,[k,,t])=>t==="estado"
+    ? `<select data-k="${k}">${Object.entries(ESTADO_LABELS).map(([e,l])=>`<option value="${e}"${r.estado===e?" selected":""}>${l}</option>`).join("")}</select>`
+    : `<input data-k="${k}" type="${t==="date"?"date":"text"}" value="${escapeHtml(r[k])}"${t==="dep"?' list="empList"':""}>`;
+  body.innerHTML=list.map(r=>`<tr data-id="${r.id}">${GCOLS.map(c=>`<td>${cell(r,c)}</td>`).join("")}<td><button class="btn btn-outline btn-sm" data-del title="Eliminar fila">🗑</button></td></tr>`).join("");
+}
+function gridEdit(ev){
+  const el=ev.target, k=el.dataset&&el.dataset.k; if(!k) return;
+  const tr=el.closest("tr"), r=records.find(x=>x.id===tr.dataset.id); if(!r) return;
+  r[k]=el.value;
+  if(k==="estado"){
+    r.fechaEntregaReal=el.value==="entregado"?(r.fechaEntregaReal||todayISO()):"";
+    const i=tr.querySelector('[data-k="fechaEntregaReal"]'); if(i) i.value=r.fechaEntregaReal;
+  }
+  markDirty(r.id); if(fileHandle) setSync("pending"); renderStats();
+  clearTimeout(gridT); gridT=setTimeout(persist,500);
+}
+$("#gridBody").addEventListener("input",gridEdit);
+$("#gridBody").addEventListener("change",gridEdit);
+$("#gridBody").addEventListener("focusout",()=>setTimeout(()=>{ if(gridStale&&!$("#gridBody").contains(document.activeElement)) renderGrid(); },0));
+$("#gridBody").addEventListener("click",async ev=>{
+  if(!ev.target.closest("[data-del]")) return;
+  const id=ev.target.closest("tr").dataset.id;
+  if(!confirm("¿Eliminar esta fila? También se borrará del Excel.")) return;
+  records=records.filter(r=>r.id!==id); markDeleted(id); await persist(); renderStats(); renderGrid(true);
+});
+$("#btnAddRow").onclick=async()=>{
+  const r={id:uid(),dependiente:"",fechaInicio:todayISO(),medicamento:"",cantidad:"",telefono:"",cliente:"",autorizado:"",fechaEntrega:"",hora:"",observaciones:"",factura:"",estado:"pendiente",fechaEntregaReal:""};
+  records.unshift(r); markDirty(r.id);
+  if($("#gridFilter").value==="entregado") $("#gridFilter").value="activos";
+  $("#searchGrid").value=""; await persist(); renderStats(); renderGrid(true);
+  const i=document.querySelector(`#gridBody tr[data-id="${r.id}"] [data-k="medicamento"]`); if(i){ i.scrollIntoView({block:"center"}); i.focus(); }
+};
+$("#searchGrid").addEventListener("input",()=>renderGrid(true));
+$("#gridFilter").addEventListener("change",()=>{ gridLimit=300; renderGrid(true); });
+$("#gridMore").onclick=()=>{ gridLimit+=300; renderGrid(true); };
+setSync("none");
+
+loadData().then(restoreHandle);
+</script>
+<!-- === EXPORTAR RESPALDO (Medicamentos Pendientes) === -->
+<button id="btnExportarRespaldo" style="position:fixed;right:16px;bottom:16px;z-index:99999;padding:12px 18px;border:0;border-radius:8px;background:#B5651D;color:#fff;font:600 14px Inter,system-ui,sans-serif;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.25)">⬇ Guardar respaldo para el sistema nuevo</button>
+<script>
+document.getElementById("btnExportarRespaldo").onclick = async function(){
+  const leer = async k => { try{ const r = await window.storage.get(k,false); return r && r.value ? JSON.parse(r.value) : null; }catch(e){ return null; } };
+  const records = await leer("medicamentos:records") || [];
+  const empleados = await leer("medicamentos:empleados") || [];
+  const meta = await leer("medicamentos:meta") || {};
+  if(!records.length && !empleados.length){ alert("No se encontraron datos en este navegador.\n\nAbre este archivo en el mismo navegador y la misma computadora donde usabas el sistema antiguo."); return; }
+  const paquete = { formato:"medpend-export-v1", exportadoEn:new Date().toISOString(), equipo:location.href.slice(0,120),
+    records, empleados, historicoEntregados:Number(meta.historicoEntregados)||0 };
+  const blob = new Blob([JSON.stringify(paquete,null,2)],{type:"application/json"});
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+  a.download = "respaldo-medicamentos-" + new Date().toISOString().slice(0,10) + ".json";
+  document.body.appendChild(a); a.click(); a.remove();
+  alert("Listo. Se guardó el archivo:\n" + a.download + "\n\nBúscalo en la carpeta Descargas. Cópialo a una memoria USB si lo vas a importar desde otra computadora.\n\nNo se borró nada del sistema antiguo.");
+};
+</script>
+</body>
+</html>

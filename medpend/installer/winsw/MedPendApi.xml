@@ -1,0 +1,15 @@
+<service>
+  <id>MedPendApi</id>
+  <name>Medicamentos Pendientes - API</name>
+  <description>Servidor de Medicamentos Pendientes</description>
+  <executable>%BASE%\..\node\node.exe</executable>
+  <arguments>"%BASE%\..\server\index.js"</arguments>
+  <startmode>Automatic</startmode>
+  <delayedAutoStart>true</delayedAutoStart>
+  <onfailure action="restart" delay="10 sec"/>
+  <onfailure action="restart" delay="30 sec"/>
+  <onfailure action="restart" delay="60 sec"/>
+  <resetfailure>1 hour</resetfailure>
+  <log mode="roll-by-size"><sizeThreshold>5120</sizeThreshold><keepFiles>5</keepFiles></log>
+  <logpath>%ProgramData%\MedicamentosPendientes\logs</logpath>
+</service>
